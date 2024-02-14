@@ -55,15 +55,15 @@ typedef enum
 
 typedef enum
 {
-	RCC_Enable = 0,
-	RCC_Disable
+	RCC_Disable = 0,
+	RCC_Enable
 	
 }RCC_State;
 
-typedef struct
+typedef enum 
 {
-	RCC_PLL_HSE;
-	RCC_PLL_HSI;
+	RCC_PLL_HSE,
+	RCC_PLL_HSI
 	
 }RCC_PLL_SRC;
 
@@ -89,9 +89,8 @@ typedef enum
 	RCC_SYSCLKDisable_ERROR,
 	RCC_SelectSYSCLK_ERROR,
 	RCC_PeripheralEnable_OK,
-	RCC_PeripheralEnable_ERROR,
 	RCC_PeripheralDisable_OK,
-	RCC_PeripheralDisable_ERROR,
+	RCC_Peripheral_CTRL_ERROR,
 	RCC_RDY,
 	RCC_NRDY,
 	RCC_PLLCFG_FAILED,
@@ -100,9 +99,10 @@ typedef enum
 	RCC_SYSCLK_SWITCHED
 
 }RCC_ErrorStatus;
+
 typedef unsigned long uint32_t;
 
-typedef struct RCC_PLLConfig
+typedef struct 
 {
 	RCC_PLL_SRC RCC_PLL_ClkSrc;
 	uint32_t    RCC_PLL_M;
@@ -112,6 +112,79 @@ typedef struct RCC_PLLConfig
 	
 } RCC_PLLConfig ;
 
+typedef enum
+{
+	RCC_GPIOA_AHB1,
+	RCC_GPIOB_AHB1,
+    RCC_GPIOC_AHB1,
+	RCC_GPIOD_AHB1, 
+	RCC_GPIOE_AHB1, 
+	RCC_GPIOH_AHB1     =  7,
+	RCC_CRC_AHB1       = 12,
+	RCC_DMA1_AHB1      = 21,
+	RCC_DMA2_AHB1,
+	RCC_OTGFS_AHB2     = 39,
+	RCC_TIM2_APB1      = 63,
+	RCC_TIM3_APB1,
+	RCC_TIM4_APB1,
+	RCC_TIM5_APB1,
+	RCC_WWDG_APB1      = 74,
+	RCC_SPI2_APB1      = 77,
+	RCC_SPI3_APB1,
+	RCC_USART2_APB1    = 80,
+	RCC_I2C1_APB1      = 84,
+	RCC_I2C2_APB1 ,
+	RCC_I2C3_APB1,
+	RCC_PWR_APB1       = 91,
+	RCC_TIM1_APB2      = 95,
+	RCC_USART1_APB2    = 99,
+	RCC_USART6_APB2,
+	RCC_ADC1_APB2      = 103,
+	RCC_SDIO_APB2      = 106,
+	RCC_SPI1_APB2,
+	RCC_SPI4_APB2,
+	RCC_SYSCF_APB2,
+	RCC_TIM9_APB2      = 111,
+	RCC_TIM10_APB2,
+	RCC_TIM11_APB2,
+	RCC_GPIOALP_AHB1LP = 127,
+	RCC_GPIOBLP_AHB1LP,
+	RCC_GPIOCLP_AHB1LP,
+	RCC_GPIODLP_AHB1LP,
+	RCC_GPIOELP_AHB1LP,
+	RCC_GPIOHLP_AHB1LP = 134,
+	RCC_CRCLP_AHB1LP   = 139,
+	RCC_FLITFLP_AHB1LP = 142,
+	RCC_SRAM1LP_AHB1LP,
+	RCC_DMA1LP_AHB1LP  = 150,
+	RCC_DMA2LP_AHB1LP,
+	RCC_OTGFSLP_AHB2LP = 168,
+	RCC_TIM2LP_APB1LP  = 193,
+	RCC_TIM3LP_APB1LP  ,
+	RCC_TIM4LP_APB1LP,
+	RCC_TIM5LP_APB1LP,
+	RCC_TIM5LP_APB1LP,
+	RCC_WWDGLP_APB1LP  = 204,
+	RCC_SPI2LP_APB1LP  = 207,
+	RCC_SPI3LP_APB1LP,
+	RCC_USART2LP_APB1LP= 210,
+	RCC_I2C1LP_APB1LP  = 214,
+	RCC_I2C2LP_APB1LP,
+	RCC_I2C3LP_APB1LP,
+	RCC_PWRLP_APB1LP   = 221,
+	RCC_TIM1LP_APB2LP  = 225,
+	RCC_USART1LP_APB2LP= 229,
+	RCC_USART6LP_APB2LP,
+	RCC_ADC1LP_APB2LP  = 233,
+	RCC_SDIOLP_APB2LP  = 236,
+	RCC_SPI1LP_APB2LP,
+	RCC_SPI4LP_APB2LP,
+	RCC_SYSCFLP_APB2LP,
+	RCC_TIM9LP_APB2LP  = 240,
+	RCC_TIM10LP_APB2LP,
+	RCC_TIM11LP_APB2LP
+
+}RCC_Peripherals_opts;
 
 /************ RCC_SelectSYSCLK ********************/
 /* Functionality    : Select sysclk to enable or 
@@ -153,12 +226,14 @@ RCC_ErrorStatus RCC_SelectSYSCLK ( RCC_SYSCLK   RCC_CopySYSCLK  , RCC_SYSCLKStat
                          CLOCK Before configuring 
 						 PLL			  
 */
-RCC_ErrorStatus RCC_CFG_PLL      ( RCC_PLLConfig.RCC_PLL_ClkSrc   Input_PLL_ClkSrc  , RCC_PLLConfig.RCC_PLL_M Input_PLL_M, RCC_PLLConfig.RCC_PLL_N Input_PLL_N, RCC_PLLConfig.RCC_PLL_P Input_PLL_P , RCC_PLLConfig.RCC_PLL_Q  Input_PLL_Q );
+RCC_ErrorStatus RCC_CFG_PLL(RCC_PLL_SRC Input_PLL_ClkSrc, uint32_t Input_PLL_M, uint32_t Input_PLL_N, uint32_t Input_PLL_P, uint32_t Input_PLL_Q);
 
-RCC_ErrorStatus RCC_Control_Peripheral(uint32_t RCC_Peripheral_EN , uint32_t RCC_Peripheral_BUS , RCC_State RCC_Peripheral_State );
+RCC_ErrorStatus RCC_EN_DIS_Peripheral(RCC_Peripherals_opts RCC_Peripheral_EN_opts , RCC_State RCC_Peripheral_State );
 
 RCC_ErrorStatus RCC_Set_AHB_Prescaler(uint32_t RCC_AHBPrescalerValue);
 
 RCC_ErrorStatus RCC_Set_APB1_Prescaler(uint32_t RCC_APB1PrescalerValue);
 
 RCC_ErrorStatus RCC_Set_APB2_Prescaler(uint32_t RCC_APB2PrescalerValue);
+
+RCC_SYSCLK      RCC_GET_SYSCLK(void);
