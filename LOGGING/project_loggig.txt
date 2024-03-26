@@ -1,0 +1,4 @@
+(Tue Feb 27 07:45:15 2024) [INFO] This is an informational message
+(Tue Feb 27 07:45:15 2024) [WARNING] This is a warning message
+(Tue Feb 27 07:45:15 2024) [ERROR] This is an error message
+(Tue Feb 27 07:45:15 2024) [CRITICAL] This is a critical message
