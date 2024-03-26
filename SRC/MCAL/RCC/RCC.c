@@ -21,8 +21,8 @@
 /************************************************/
 /********          Data  Types                ***/
 /************************************************/
-typedef unsigned long uint32_t;
 
+typedef unsigned int uint32_t;
 #define vp32		  volatile uint32_t* 
 
 /* Defining all registers in RCC with offset 32bit  */
@@ -184,7 +184,7 @@ typedef struct
 #define RCC_MASK_GPIOHRST   0x00000080
 
 #define RCC_MASK_DMA1RST    0x00200000
-#define RCC_MASK_DMA1RST    0x00400000
+#define RCC_MASK_DMA2RST    0x00400000
 
 #define RCC_MASK_CRCRST     0x00001000
 
@@ -251,17 +251,19 @@ typedef struct
 #define RCC_MASK_PIN29      0x20000000
 #define RCC_MASK_PIN30      0x40000000
 #define RCC_MASK_PIN31      0x80000000
-/************************************/
-#define RCC_AHB1ENR_Start_IDX              0
-#define RCC_AHB1ENR_End_IDX               31
-#define RCC_AHB2ENR_Start_IDX             32
-#define RCC_APB1ENR_Start_IDX             64
-#define RCC_APB2ENR_Start_IDX             96
-#define RCC_AHB1LPENR_Start_IDX          128
-#define RCC_AHB2LPENR_Start_IDX          160
-#define RCC_APB1LPENR_Start_IDX          192
-#define RCC_APB2LPENR_Start_IDX          224
-#define RCC_APB2LPENR_End_IDX            255
+/***************************************/
+/*         peripheral enable           */
+/***************************************/
+#define RCC_AHB1ENR_Start_IDX        0
+#define RCC_AHB1ENR_End_IDX         31
+#define RCC_AHB2ENR_Start_IDX       32
+#define RCC_APB1ENR_Start_IDX       64
+#define RCC_APB2ENR_Start_IDX       96
+#define RCC_AHB1LPENR_Start_IDX    128
+#define RCC_AHB2LPENR_Start_IDX    160
+#define RCC_APB1LPENR_Start_IDX    192
+#define RCC_APB2LPENR_Start_IDX    224
+#define RCC_APB2LPENR_End_IDX      255
 
 /*
 0   - 31   (RCC_AHB1ENR)
@@ -273,6 +275,29 @@ typedef struct
 192 - 223  (RCC_APB1LPENR)
 224 - 255  (RCC_APB2LPENR)
 */
+
+/***************************************/
+/*         PLL Configuration           */
+/***************************************/
+#define RCC_PLL_NCFG_SHIFT   6
+#define RCC_PLL_PCFG_SHIFT  16
+#define RCC_PLLSRCCFG_SHIFT 22
+#define RCC_PLL_QCFG_SHIFT  24
+
+/***************************************/
+/*      Prescaler Mask for buses       */
+/***************************************/
+#define RCC_MASK_PPRE1      0x00001C00
+#define RCC_MASK_PPRE2      0x0000E000
+#define RCC_MASK_HPRE       0x000000F0
+
+/***************************************/
+/*      Prescaler Values for buses     */
+/***************************************/
+
+
+
+
 /*********************************************************************************************************************************************************/
 /**************************************************               New Types Region                 *******************************************************/
 /*********************************************************************************************************************************************************/
@@ -281,16 +306,32 @@ typedef enum
 	RCC_CLEAR,
 	RCC_SET,
 	RCC_TOGGLE
+
 }RCC_REG_OPER;
 
+
+
+typedef enum
+{
+	RCC_RDY = 0,
+	RCC_NOTRDY
+	
+}RCC_RDY_State;
+
+typedef enum
+{
+	RCC_OFF = 0,
+	RCC_ON
+	
+}RCC_ON_OFF_State;
 /*********************************************************************************************************************************************************/
 /*********************************************         Static Functions Prototypes Region        *****************************************************/
 /*********************************************************************************************************************************************************/
 static RCC_ON_OFF_State RCC_GET_SYSCLK_ON_BIT ( RCC_SYSCLK   RCC_CopySYSCLK);
 static RCC_RDY_State    RCC_GET_ReadyFlag     ( RCC_SYSCLK   RCC_CopySYSCLK);
 static RCC_ErrorStatus  RCC_SwitchToSYSCLK    ( RCC_SYSCLK   RCC_CopySYSCLK);
-static uint32_t         RCC_EDIT_Bit_Reg       (uint32_t RCC_REG_EDIT,uint32_t BIT_NUM,RCC_REG_OPER OPERA);
-static uint32_t         RCC_EDIT_REG_MASK      (uint32_t RCC_REG_EDIT,uint32_t RCC_MASK,RCC_REG_OPER OPERA);
+static uint32_t         RCC_EDIT_Bit_Reg      (uint32_t RCC_REG_EDIT,uint32_t BIT_NUM,RCC_REG_OPER OPERA);
+static uint32_t         RCC_EDIT_REG_MASK     (uint32_t RCC_REG_EDIT,uint32_t RCC_MASK,RCC_REG_OPER OPERA);
 
 /*********************************************************************************************************************************************************/
 /***************************************************************** Functions Implementation **************************************************************/
@@ -308,8 +349,8 @@ static uint32_t         RCC_EDIT_REG_MASK      (uint32_t RCC_REG_EDIT,uint32_t R
 RCC_ErrorStatus RCC_SelectSYSCLK ( RCC_SYSCLK   RCC_CopySYSCLK  , RCC_SYSCLKState RCC_CopySYSCLKState )
 {
 	 RCC_ErrorStatus RCC_LocReturnSYSCLK  = RCC_SYSCLKEnable_ERROR;
-	 uint32_t loc_timeout = 60000;
-	 uint32_t RCC_Local_SYSCLK =0;
+	 /*To avoid loc_timeout var optimization*/
+	 volatile uint32_t loc_timeout = 60000;
 
 	 /*Check input from user within Range*/
 	 if((RCC_CopySYSCLK >= RCC_SYSCLK_HSE) && (RCC_CopySYSCLK <= RCC_SYSCLK_PLL))
@@ -319,8 +360,8 @@ RCC_ErrorStatus RCC_SelectSYSCLK ( RCC_SYSCLK   RCC_CopySYSCLK  , RCC_SYSCLKStat
 
 			  case RCC_SYSCLK_HSE :
 			  {
-				if(RCC_SYSCLK_Enable)
-				{/* 
+				if(RCC_CopySYSCLKState)/*ENABLE*/
+				{
 					/*
 					 SET RC_CR        -> HSEON   
 					 RCC_Local_SYSCLK  = RCC_CR;
@@ -349,7 +390,7 @@ RCC_ErrorStatus RCC_SelectSYSCLK ( RCC_SYSCLK   RCC_CopySYSCLK  , RCC_SYSCLKStat
 					}
 					 
 				}
-				else if(RCC_SYSCLK_Disable)
+				else if(!RCC_CopySYSCLKState)/*DIABLE*/
 				{
 				/* CLEAR RC_CR -> HSEON  */
 				/* 
@@ -368,7 +409,7 @@ RCC_ErrorStatus RCC_SelectSYSCLK ( RCC_SYSCLK   RCC_CopySYSCLK  , RCC_SYSCLKStat
 			  
 			  case RCC_SYSCLK_HSI :
 			  {
-				  if(RCC_SYSCLK_Enable)
+				  if(RCC_CopySYSCLKState)
 				  {
 					  /* SET RC_CR -> HSION   */
 					  /* 
@@ -395,7 +436,7 @@ RCC_ErrorStatus RCC_SelectSYSCLK ( RCC_SYSCLK   RCC_CopySYSCLK  , RCC_SYSCLKStat
 					    RCC_LocReturnSYSCLK = RCC_SYSCLKEnable_OK ;
 					}
 				  }
-				  else if(RCC_SYSCLK_Disable)
+				  else if(!RCC_CopySYSCLKState)
 				  {
 					  /* CLEAR RC_CR -> HSION  */
 					  /* 
@@ -415,7 +456,7 @@ RCC_ErrorStatus RCC_SelectSYSCLK ( RCC_SYSCLK   RCC_CopySYSCLK  , RCC_SYSCLKStat
 			  
 			  case RCC_SYSCLK_PLL :
 			  {
-				  if(RCC_SYSCLK_Enable)
+				  if(RCC_CopySYSCLKState)
 				  {
 					  /* SET RC_CR -> main PLLON   */
 				    /*
@@ -443,7 +484,7 @@ RCC_ErrorStatus RCC_SelectSYSCLK ( RCC_SYSCLK   RCC_CopySYSCLK  , RCC_SYSCLKStat
 					    RCC_LocReturnSYSCLK = RCC_SYSCLKEnable_OK ;
 					}
 				  }
-				  else if(RCC_SYSCLK_Disable)
+				  else if(!RCC_CopySYSCLKState)
 				  {
 					/* CLEAR RC_CR -> PLLON  */
 					/*
@@ -491,7 +532,7 @@ RCC_SYSCLK RCC_GET_SYSCLK(void)
 {
 	uint32_t RCC_Loc_Sysclk_Var;
 	RCC_Loc_Sysclk_Var = RCC_SWS_CLK;
-	RCC_SYSCLK RCC_Current_SYSCLK;
+	RCC_SYSCLK RCC_Current_SYSCLK = RCC_SYSCLK_ERROR;
 	switch (RCC_Loc_Sysclk_Var)
 	{
 		case RCC_SWS_HSI:
@@ -528,41 +569,62 @@ RCC_SYSCLK RCC_GET_SYSCLK(void)
 					              factor for VCO.
 					  5- PLLM   : Division factor for the main PLL 
 					              (PLL) and audio PLL (PLLI2S) input clock
+    Warning!        : PLL Must not be SYSCLK during Configuration.
+
  */
 RCC_ErrorStatus RCC_CFG_PLL(RCC_PLL_SRC Input_PLL_ClkSrc, uint32_t Input_PLL_Q, uint32_t Input_PLL_P, uint32_t Input_PLL_N , uint32_t Input_PLL_M)
 {
 
 	RCC_ErrorStatus RCC_LocReturnSYSCLK  = RCC_PLLCFG_OK;
 	RCC_SYSCLK RCC_Current_SYSCLK = RCC_GET_SYSCLK();
-	
-	if( RCC_Current_SYSCLK == RCC_SYSCLK_PLL)
+	/*PLLCFGR Reset Value*/
+	RCC_PLLCFGR = 0x24003010;
+	uint32_t RCC_PLLCGG_Loc ;
+
+	/* Check on sysclk and pll sysclk source */
+	if(( RCC_Current_SYSCLK  == RCC_SYSCLK_PLL) || !(Input_PLL_ClkSrc == RCC_PLL_HSE || Input_PLL_ClkSrc == RCC_PLL_HSE))
 	{
-		RCC_LocReturnSYSCLK = RCC_PLLCFG_FAILED;
+		RCC_LocReturnSYSCLK = RCC_PLLCFG_FAILED ;
+	}
+	else if( !(Input_PLL_Q >= 2 && Input_PLL_Q <=15)  )
+	{
+	     RCC_LocReturnSYSCLK = RCC_PLLCFG_FAILED ;
+	}
+	else if (!(Input_PLL_P == 2 || Input_PLL_P == 4 || Input_PLL_P == 6 || Input_PLL_P == 8 ))
+	{
+		RCC_LocReturnSYSCLK = RCC_PLLCFG_FAILED ;
+	}
+    else if (!(Input_PLL_M >= 2 && Input_PLL_M <=63))
+	{
+		RCC_LocReturnSYSCLK = RCC_PLLCFG_FAILED ;
+	}
+	else if (!(Input_PLL_N >= 192 && Input_PLL_N <= 432))
+	{
+		RCC_LocReturnSYSCLK = RCC_PLLCFG_FAILED ;
 	}
 	else
 	{
+		/* Reset all pllcfgr values and will disable PLL clock */
+		RCC_PLLCGG_Loc = ((RCC_PLLCFGR) | (Input_PLL_ClkSrc<<RCC_PLLSRCCFG_SHIFT) | (Input_PLL_P<<RCC_PLL_PCFG_SHIFT) | (Input_PLL_N<<RCC_PLL_NCFG_SHIFT) | (Input_PLL_M) | (Input_PLL_Q<<RCC_PLL_QCFG_SHIFT)) ;
+		RCC_PLLCFGR    = RCC_PLLCGG_Loc;
 
+		RCC_LocReturnSYSCLK = RCC_PLLCFG_COMPLETED ;
 	}
 
+	
+	
 	return RCC_LocReturnSYSCLK;
 }
 
-/************ RCC_GET_ReadyFlag ********************/
-/* 
-   
-   Functionality    : Check rdy flag in RCC_CR
-   Input Parameters : 1- System clock	
-
- */
 RCC_ErrorStatus RCC_EN_DIS_Peripheral(RCC_Peripherals_opts RCC_Peripheral_EN_opts , RCC_State RCC_Peripheral_State )
 {
-	uint32_t RCC_Local_Peri_EN =0;
+	/*uint32_t RCC_Local_Peri_EN =0;*/
 	RCC_ErrorStatus RCC_LocReturStatus = RCC_Peripheral_CTRL_ERROR;
 
 	if (RCC_Peripheral_EN_opts >= RCC_AHB1ENR_Start_IDX && RCC_Peripheral_EN_opts < RCC_AHB2ENR_Start_IDX )
 	{
 		
-		if(RCC_Peripheral_State == RCC_Enable)
+		if(RCC_Peripheral_State == RCC_Enable_Peripheral)
 		{
 			/* RCC_Local_Peri_EN  = RCC_AHB1ENR ;
 			RCC_Local_Peri_EN |= (1<<RCC_Peripheral_EN_opts);
@@ -570,7 +632,7 @@ RCC_ErrorStatus RCC_EN_DIS_Peripheral(RCC_Peripherals_opts RCC_Peripheral_EN_opt
 			RCC_AHB1ENR = RCC_EDIT_Bit_Reg(RCC_AHB1ENR,RCC_Peripheral_EN_opts,RCC_SET);
 			RCC_LocReturStatus = RCC_PeripheralEnable_OK;
 		} 
-		else if(RCC_Peripheral_State == RCC_Disable)
+		else if(RCC_Peripheral_State == RCC_Disable_Peripheral)
 		{
 			/* RCC_Local_Peri_EN  = RCC_AHB1ENR ;
 			RCC_Local_Peri_EN &= ~(1<<RCC_Peripheral_EN_opts);
@@ -586,21 +648,21 @@ RCC_ErrorStatus RCC_EN_DIS_Peripheral(RCC_Peripherals_opts RCC_Peripheral_EN_opt
 	}
 	else if(RCC_Peripheral_EN_opts >= RCC_AHB2ENR_Start_IDX  && RCC_Peripheral_EN_opts < RCC_APB1ENR_Start_IDX)
 	{
-		if(RCC_Peripheral_State == RCC_Enable)
+		if(RCC_Peripheral_State == RCC_Enable_Peripheral)
 		{
 			
 			RCC_Peripheral_EN_opts -= RCC_AHB2ENR_Start_IDX ;
-		    /*  
+		    
 			/*Takig a copy from register to set the assignn at a atime
 			RCC_Local_Peri_EN  = RCC_AHB2ENR;
-			/* Extracting the peripheral bit	
+		     Extracting the peripheral bit	
 		    RCC_Local_Peri_EN |= (1<<RCC_Peripheral_EN_opts);
 			RCC_AHB2ENR        = RCC_Local_Peri_EN;   
 			*/
 			RCC_AHB2ENR = RCC_EDIT_Bit_Reg(RCC_AHB2ENR,RCC_Peripheral_EN_opts,RCC_SET);
 			RCC_LocReturStatus = RCC_PeripheralEnable_OK;
 		}
-		else if (RCC_Peripheral_State == RCC_Disable)
+		else if (RCC_Peripheral_State == RCC_Disable_Peripheral)
 		{
 			RCC_Peripheral_EN_opts -= RCC_AHB2ENR_Start_IDX ;
 			/* RCC_Local_Peri_EN  = RCC_AHB2ENR;	
@@ -616,7 +678,7 @@ RCC_ErrorStatus RCC_EN_DIS_Peripheral(RCC_Peripherals_opts RCC_Peripheral_EN_opt
 	}
 	else if(RCC_Peripheral_EN_opts >= RCC_APB1ENR_Start_IDX  && RCC_Peripheral_EN_opts < RCC_APB2ENR_Start_IDX)
 	{
-		if(RCC_Peripheral_State == RCC_Enable)
+		if(RCC_Peripheral_State == RCC_Enable_Peripheral)
 		{
 			RCC_Peripheral_EN_opts -= RCC_APB1ENR_Start_IDX ;
 			/* RCC_Local_Peri_EN  = RCC_APB1ENR;	
@@ -625,7 +687,7 @@ RCC_ErrorStatus RCC_EN_DIS_Peripheral(RCC_Peripherals_opts RCC_Peripheral_EN_opt
 			RCC_APB1ENR = RCC_EDIT_Bit_Reg(RCC_APB1ENR,RCC_Peripheral_EN_opts,RCC_SET);
 			RCC_LocReturStatus = RCC_PeripheralEnable_OK;
 		}
-		else if (RCC_Peripheral_State == RCC_Disable)
+		else if (RCC_Peripheral_State == RCC_Disable_Peripheral)
 		{
 			RCC_Peripheral_EN_opts -= RCC_APB1ENR_Start_IDX ;
 			/* RCC_Local_Peri_EN  = RCC_APB1ENR;	
@@ -643,7 +705,7 @@ RCC_ErrorStatus RCC_EN_DIS_Peripheral(RCC_Peripherals_opts RCC_Peripheral_EN_opt
 	}
 	else if(RCC_Peripheral_EN_opts >= RCC_APB2ENR_Start_IDX  && RCC_Peripheral_EN_opts < RCC_AHB1LPENR_Start_IDX)
 	{
-		if(RCC_Peripheral_State == RCC_Enable)
+		if(RCC_Peripheral_State == RCC_Enable_Peripheral)
 		{
 			RCC_Peripheral_EN_opts -= RCC_APB2ENR_Start_IDX ;
 		/* 	RCC_Local_Peri_EN  = RCC_APB2ENR;
@@ -652,7 +714,7 @@ RCC_ErrorStatus RCC_EN_DIS_Peripheral(RCC_Peripherals_opts RCC_Peripheral_EN_opt
 			RCC_APB2ENR = RCC_EDIT_Bit_Reg(RCC_APB2ENR,RCC_Peripheral_EN_opts,RCC_SET);
 			RCC_LocReturStatus = RCC_PeripheralEnable_OK;
 		}
-		else if (RCC_Peripheral_State == RCC_Disable)
+		else if (RCC_Peripheral_State == RCC_Disable_Peripheral)
 		{
 			RCC_Peripheral_EN_opts -= RCC_APB2ENR_Start_IDX ;
 			/* RCC_Local_Peri_EN  = RCC_APB2ENR	
@@ -669,7 +731,7 @@ RCC_ErrorStatus RCC_EN_DIS_Peripheral(RCC_Peripherals_opts RCC_Peripheral_EN_opt
 	}
 	else if(RCC_Peripheral_EN_opts >= RCC_AHB1LPENR_Start_IDX  && RCC_Peripheral_EN_opts < RCC_AHB2LPENR_Start_IDX)
 	{
-		if(RCC_Peripheral_State == RCC_Enable)
+		if(RCC_Peripheral_State == RCC_Enable_Peripheral)
 		{
 			RCC_Peripheral_EN_opts -=  RCC_AHB1LPENR_Start_IDX ;
 			/* RCC_Local_Peri_EN  = RCC_AHB1LPENR;	
@@ -677,7 +739,7 @@ RCC_ErrorStatus RCC_EN_DIS_Peripheral(RCC_Peripherals_opts RCC_Peripheral_EN_opt
 			RCC_AHB1LPENR = RCC_EDIT_Bit_Reg(RCC_AHB1LPENR,RCC_Peripheral_EN_opts,RCC_SET);
 			RCC_LocReturStatus = RCC_PeripheralEnable_OK;
 		}
-		else if (RCC_Peripheral_State == RCC_Disable)
+		else if (RCC_Peripheral_State == RCC_Disable_Peripheral)
 		{
 			RCC_Peripheral_EN_opts -=  RCC_AHB1LPENR_Start_IDX ;
 			/* RCC_Local_Peri_EN  =  RCC_AHB1LPENR;	
@@ -694,7 +756,7 @@ RCC_ErrorStatus RCC_EN_DIS_Peripheral(RCC_Peripherals_opts RCC_Peripheral_EN_opt
 	}
 	else if(RCC_Peripheral_EN_opts >= RCC_AHB2LPENR_Start_IDX  && RCC_Peripheral_EN_opts < RCC_APB1LPENR_Start_IDX)
 	{
-		if(RCC_Peripheral_State == RCC_Enable)
+		if(RCC_Peripheral_State == RCC_Enable_Peripheral)
 		{
 			RCC_Peripheral_EN_opts -=  RCC_AHB2LPENR_Start_IDX ;
 			/* RCC_Local_Peri_EN  =  RCC_AHB2LPENR;	
@@ -702,7 +764,7 @@ RCC_ErrorStatus RCC_EN_DIS_Peripheral(RCC_Peripherals_opts RCC_Peripheral_EN_opt
 			RCC_AHB2LPENR = RCC_EDIT_Bit_Reg(RCC_AHB2LPENR,RCC_Peripheral_EN_opts,RCC_SET);
 			RCC_LocReturStatus = RCC_PeripheralEnable_OK;
 		}
-		else if (RCC_Peripheral_State == RCC_Disable)
+		else if (RCC_Peripheral_State == RCC_Disable_Peripheral)
 		{
 			RCC_Peripheral_EN_opts -=  RCC_AHB2LPENR_Start_IDX ;
 			/* RCC_Local_Peri_EN  =  RCC_AHB2LPENR;	
@@ -719,7 +781,7 @@ RCC_ErrorStatus RCC_EN_DIS_Peripheral(RCC_Peripherals_opts RCC_Peripheral_EN_opt
 	}
 	else if(RCC_Peripheral_EN_opts >= RCC_APB1LPENR_Start_IDX  && RCC_Peripheral_EN_opts < RCC_APB2LPENR_Start_IDX)
 	{
-		if(RCC_Peripheral_State == RCC_Enable)
+		if(RCC_Peripheral_State == RCC_Enable_Peripheral)
 		{
 			RCC_Peripheral_EN_opts -=  RCC_APB1LPENR_Start_IDX ;
 			/* RCC_Local_Peri_EN  =  RCC_APB1LPENR;	
@@ -727,7 +789,7 @@ RCC_ErrorStatus RCC_EN_DIS_Peripheral(RCC_Peripherals_opts RCC_Peripheral_EN_opt
 			RCC_APB1LPENR = RCC_EDIT_Bit_Reg(RCC_APB1LPENR,RCC_Peripheral_EN_opts,RCC_SET);
 			RCC_LocReturStatus = RCC_PeripheralEnable_OK;
 		}
-		else if (RCC_Peripheral_State == RCC_Disable)
+		else if (RCC_Peripheral_State == RCC_Disable_Peripheral)
 		{
 			RCC_Peripheral_EN_opts -=  RCC_APB1LPENR_Start_IDX ;
 		/* 	RCC_Local_Peri_EN  =  RCC_APB1LPENR;	
@@ -744,7 +806,7 @@ RCC_ErrorStatus RCC_EN_DIS_Peripheral(RCC_Peripherals_opts RCC_Peripheral_EN_opt
 	}
 	else if(RCC_Peripheral_EN_opts >= RCC_APB2LPENR_Start_IDX  && RCC_Peripheral_EN_opts <= RCC_APB2LPENR_End_IDX)
 	{
-		if(RCC_Peripheral_State == RCC_Enable)
+		if(RCC_Peripheral_State == RCC_Enable_Peripheral)
 		{
 			RCC_Peripheral_EN_opts -=  RCC_APB1LPENR_Start_IDX ;	
 			/* RCC_Local_Peri_EN  =  RCC_APB2LPENR;
@@ -752,7 +814,7 @@ RCC_ErrorStatus RCC_EN_DIS_Peripheral(RCC_Peripherals_opts RCC_Peripheral_EN_opt
 			RCC_APB2LPENR = RCC_EDIT_Bit_Reg(RCC_APB2LPENR,RCC_Peripheral_EN_opts,RCC_SET);
 			RCC_LocReturStatus = RCC_PeripheralEnable_OK;
 		}
-		else if (RCC_Peripheral_State == RCC_Disable)
+		else if (RCC_Peripheral_State == RCC_Disable_Peripheral)
 		{
 			RCC_Peripheral_EN_opts -=  RCC_APB2LPENR_Start_IDX ;
 			/* RCC_Local_Peri_EN  =  RCC_APB2LPENR;	
@@ -776,6 +838,72 @@ RCC_ErrorStatus RCC_EN_DIS_Peripheral(RCC_Peripherals_opts RCC_Peripheral_EN_opt
 }
 
 
+
+RCC_ErrorStatus RCC_Set_Prescaler(RCC_CONTROL_BUS RCC_ConrolBus ,uint32_t RCC_PrescalerValue)
+{
+	volatile uint32_t loc_timeout = 1000000;
+	uint32_t RCC_PrescalerValue_LOC=0x00000000;
+	RCC_ErrorStatus RCC_LocPrescaer_status = RCC_PRE_ERROR;
+	char loc_flag_setprescaler = 1 ;
+
+	/*Error handling in case user enter unaplicable prescaler rage for selected bus */
+	if((RCC_ConrolBus == RCC_AHB_CB) && (RCC_PrescalerValue < RCC_PREAHB1_2  || RCC_PrescalerValue > RCC_PREAHB1_512 ))
+	{
+         RCC_LocPrescaer_status = RCC_PRE_ERROR;
+		 loc_flag_setprescaler = 0 ;
+	}  
+	else if ((RCC_ConrolBus == RCC_APB1_CB) && !((RCC_PrescalerValue >= RCC_PREAPB1_2  && RCC_PrescalerValue <= RCC_PREAPB1_16 )))
+	{
+         RCC_LocPrescaer_status = RCC_PRE_ERROR;
+		 loc_flag_setprescaler = 0 ;
+	}  
+	else if ((RCC_ConrolBus == RCC_APB2_CB) && !((RCC_PrescalerValue >= RCC_PREAPB2_2  && RCC_PrescalerValue <= RCC_PREAPB2_16 )))
+	{
+	    RCC_LocPrescaer_status = RCC_PRE_ERROR;
+		loc_flag_setprescaler = 0 ;	
+	}
+	if(loc_flag_setprescaler)
+	{
+	  switch (RCC_ConrolBus)
+		{
+		case RCC_AHB_CB:
+		{
+			RCC_PrescalerValue_LOC  = RCC_EDIT_REG_MASK(RCC_CFGR ,RCC_MASK_HPRE,RCC_CLEAR);
+			RCC_CFGR                = RCC_EDIT_REG_MASK(RCC_PrescalerValue_LOC ,RCC_PrescalerValue,RCC_SET);
+			RCC_LocPrescaer_status = RCC_PRE_OK;
+
+		}break;
+
+		case RCC_APB1_CB:
+		{
+			RCC_PrescalerValue_LOC = RCC_EDIT_REG_MASK(RCC_CFGR ,RCC_MASK_HPRE,RCC_CLEAR);
+			RCC_CFGR           = RCC_EDIT_REG_MASK(RCC_PrescalerValue_LOC,RCC_PrescalerValue,RCC_SET);
+			RCC_LocPrescaer_status = RCC_PRE_OK;
+
+		}break;
+		case RCC_APB2_CB:
+		{
+			RCC_PrescalerValue_LOC = RCC_EDIT_REG_MASK(RCC_CFGR ,RCC_MASK_HPRE,RCC_CLEAR);
+			RCC_CFGR           = RCC_EDIT_REG_MASK(RCC_PrescalerValue_LOC,RCC_PrescalerValue,RCC_SET);
+			RCC_LocPrescaer_status = RCC_PRE_OK;
+		}break;
+		
+		default:
+		{
+			RCC_LocPrescaer_status = RCC_PRE_ERROR;
+		} break;
+		}
+	}
+	
+	
+    /* Introduce a fixed delay to ensure the new clock configuration takes effect */
+	while(loc_timeout);
+
+	return RCC_LocPrescaer_status;
+
+
+}
+
 /************ RCC_GET_ReadyFlag ********************/
 /* 
    
@@ -785,7 +913,7 @@ RCC_ErrorStatus RCC_EN_DIS_Peripheral(RCC_Peripherals_opts RCC_Peripheral_EN_opt
  */
 static RCC_RDY_State RCC_GET_ReadyFlag ( RCC_SYSCLK   RCC_CopySYSCLK)
 {
-	 RCC_RDY_State RCC_LocRDY_STATUS = RCC_NRDY ;
+	 RCC_RDY_State RCC_LocRDY_STATUS = RCC_NOTRDY ;
 
 	switch (RCC_CopySYSCLK)
 	{
@@ -797,7 +925,7 @@ static RCC_RDY_State RCC_GET_ReadyFlag ( RCC_SYSCLK   RCC_CopySYSCLK)
 				}
 				else
 				{
-					RCC_LocRDY_STATUS = RCC_NRDY;
+					RCC_LocRDY_STATUS = RCC_NOTRDY;
 				}
 
 			} break;
@@ -810,7 +938,7 @@ static RCC_RDY_State RCC_GET_ReadyFlag ( RCC_SYSCLK   RCC_CopySYSCLK)
 				}
 				else
 				{
-					RCC_LocRDY_STATUS = RCC_NRDY;
+					RCC_LocRDY_STATUS = RCC_NOTRDY; 
 				}
 
 			} break;
@@ -823,13 +951,13 @@ static RCC_RDY_State RCC_GET_ReadyFlag ( RCC_SYSCLK   RCC_CopySYSCLK)
 				}
 				else
 				{
-					RCC_LocRDY_STATUS = RCC_NRDY;
+					RCC_LocRDY_STATUS = RCC_NOTRDY;
 				}
 			} break;
 			
 			default :
 			{
-				RCC_LocRDY_STATUS = RCC_NRDY;
+				RCC_LocRDY_STATUS = RCC_NOTRDY;
 			}break;
 	
 	}
@@ -841,8 +969,9 @@ static RCC_RDY_State RCC_GET_ReadyFlag ( RCC_SYSCLK   RCC_CopySYSCLK)
 /************ RCC_GET_SYSCLK_ON_BIT ********************/
 /* 
 
-    Functionality    : Check rdy flag in RCC_CR
-    Input Parameters : 1- System clock		   
+    Functionality    : Check Input System clock ON flag 
+	                   in RCC_CR.
+    Input Parameters : 1- System clock.		   
 
 */
 static RCC_ON_OFF_State RCC_GET_SYSCLK_ON_BIT ( RCC_SYSCLK   RCC_CopySYSCLK)
@@ -933,7 +1062,7 @@ static RCC_ErrorStatus RCC_SwitchToSYSCLK ( RCC_SYSCLK   RCC_CopySYSCLK )
     uint32_t RCC_Loc_CurrentSYSCLK , RCC_Loc_Config_Var_CFGR = RCC_CFGR;
 	RCC_Loc_CurrentSYSCLK = RCC_SWS_CLK; 
 
-	if (RCC_SWS_CLK == RCC_CopySYSCLK)
+	if (RCC_Loc_CurrentSYSCLK == RCC_CopySYSCLK)
 	{
 		RCC_LocSwitchSysClk_Status = RCC_SelectSYSCLK_ERROR;
 	}
@@ -943,7 +1072,7 @@ static RCC_ErrorStatus RCC_SwitchToSYSCLK ( RCC_SYSCLK   RCC_CopySYSCLK )
 			{
 				case RCC_SYSCLK_HSE:
 				{
-					if ( ( RCC_GETReadyFlag(RCC_SYSCLK_HSE) == RCC_RDY ) && ( RCC_GET_SYSCLK_ON_BIT(RCC_SYSCLK_HSE) == RCC_ON ) )
+					if ( ( RCC_GET_ReadyFlag(RCC_SYSCLK_HSE) == RCC_RDY ) && ( RCC_GET_SYSCLK_ON_BIT(RCC_SYSCLK_HSE) == RCC_ON ) )
 					{
 						RCC_Loc_Config_Var_CFGR &= ~RCC_MASK_SW ;
 						RCC_Loc_Config_Var_CFGR |= ~RCC_MASK_SW_HSE ;
@@ -959,7 +1088,7 @@ static RCC_ErrorStatus RCC_SwitchToSYSCLK ( RCC_SYSCLK   RCC_CopySYSCLK )
 				
 				case RCC_SYSCLK_HSI:
 				{
-					if(( RCC_GETReadyFlag(RCC_SYSCLK_HSI) == RCC_RDY ) && ( RCC_GET_SYSCLK_ON_BIT(RCC_SYSCLK_HSI) == RCC_ON ))
+					if(( RCC_GET_ReadyFlag(RCC_SYSCLK_HSI) == RCC_RDY ) && ( RCC_GET_SYSCLK_ON_BIT(RCC_SYSCLK_HSI) == RCC_ON ))
 					{
 						RCC_Loc_Config_Var_CFGR &= ~RCC_MASK_SW ;
 						RCC_Loc_Config_Var_CFGR |= RCC_MASK_SW_HSI ;
@@ -975,7 +1104,7 @@ static RCC_ErrorStatus RCC_SwitchToSYSCLK ( RCC_SYSCLK   RCC_CopySYSCLK )
 
 				case RCC_SYSCLK_PLL:
 				{
-					if(( RCC_GETReadyFlag(RCC_SYSCLK_PLL) == RCC_RDY ) && ( RCC_GET_SYSCLK_ON_BIT(RCC_SYSCLK_PLL) == RCC_ON ))
+					if(( RCC_GET_ReadyFlag(RCC_SYSCLK_PLL) == RCC_RDY ) && ( RCC_GET_SYSCLK_ON_BIT(RCC_SYSCLK_PLL) == RCC_ON ))
 					{
 						RCC_Loc_Config_Var_CFGR &= ~RCC_MASK_SW ;
 						RCC_Loc_Config_Var_CFGR |= RCC_MASK_SW_PLL ;
@@ -1004,8 +1133,11 @@ static RCC_ErrorStatus RCC_SwitchToSYSCLK ( RCC_SYSCLK   RCC_CopySYSCLK )
 
 /* 
    
-   * Functionality    : 
-   * Input Parameters : 	
+   * Functionality    : EDIT bit in register
+   * Input Parameters : 1- Register you want to EDIT 
+   *                    2- Number of Bit you want to EDIT
+   *                    3- Select Operation you want to apply.
+   *                       (options : CLEAR , SET , TOGGLE) 	
    
    * NOTE             :   
  
@@ -1038,8 +1170,11 @@ static uint32_t RCC_EDIT_Bit_Reg(uint32_t RCC_REG_EDIT,uint32_t BIT_NUM,RCC_REG_
 
 /* 
    
-   * Functionality    : 
-   * Input Parameters : 	
+   * Functionality    : Apply mask on input register
+   * Input Parameters : 1- Register you want to EDIT 
+   *                    2- MASK 
+   *                    3- Select Operation you want to apply.
+   *                       (options : CLEAR , SET , TOGGLE) 	
    
    * NOTE             :   
  
