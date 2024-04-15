@@ -4,3 +4,6 @@ Application finished
 [Tue Feb 27 07:31:51 2024] [WARNING] This is a warning message
 [Tue Feb 27 07:31:51 2024] [ERROR] This is an error message
 [Tue Feb 27 07:31:51 2024] [CRITICAL] This is a critical message
+[2024-04-15 16:27:21] [INFO] This is an info message
+[2024-04-15 16:27:21] [WARNING] This is a warning message
+[2024-04-15 16:27:21] [ERROR] This is an error message
