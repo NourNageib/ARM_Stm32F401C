@@ -307,7 +307,7 @@ GPIO_ErrorStatus GPIO_InitPin_v2(GPIO_pin_Confguration_V2* GPIO_Arg_PinConfg)
         }
         else
         {
-            GPIO_Loc_Mask       = GPIO_MASK_4bitMODE(GPIO_AF_SET(GPIO_Arg_PinConfg->GPIO_AF_PER),GPIO_Arg_PinConfg->GPIO_PIN);
+            GPIO_Loc_Mask       = GPIO_MASK_4bitMODE(GPIO_AF_SET(GPIO_Arg_PinConfg->GPIO_AF_PER),((GPIO_Arg_PinConfg->GPIO_PIN)-8));
             GPIOx->GPIO_AFRH    = GPIO_EDIT_REG_MASK(GPIOx->GPIO_AFRH ,GPIO_Loc_Mask,GPIO_SET);
         }
     }

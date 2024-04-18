@@ -8,10 +8,13 @@
 /***********************************/
 
 
-/**************************************************/
-/**          APP_UPDATESWITCH driver             **/
-/**************************************************/
-
+                           /**************************************************/
+                           /**          APP_UPDATESWITCH driver             **/
+                           /**************************************************/
+                           
+/***************************************************/
+/*                Includes Region                  */
+/***************************************************/
 #include "DEMO1_Data_cfg.h"
 #include "APP_UPDATESWITCH.h"
 #include "USART.h"
@@ -28,8 +31,8 @@
     USART_ID            : USART1_ID - USART2_ID -
                                 USART6_ID.
 *****************************************************/
-#define SW_USART_CHANNEL      USART1
-#define SW_USART_CHANNEL_ID   USART1_ID
+#define SW_USART_CHANNEL_TX      USART1
+#define SW_USART_CHANNEL_ID_TX   USART1_ID
 #define NO_SW_PRESSED         0xFF
 
 
@@ -74,12 +77,17 @@ ID OF MCU PASSED IN START BYTE
 |          "5"   check  password             |     0     |     0       |     0       |    0      |
 --------------------------------------------------------------------------------------------------
 */ 
+
+               /***************************************************/
+               /*       Functions Implementation Region           */
+               /***************************************************/
+
 void APP_TX_MSG_Init(void)
 {
    
    SW_update_TX_Request.USART_DataArraySize = sizeof(SW_Message);
-   SW_update_TX_Request.USART_ID            = SW_USART_CHANNEL_ID;
-   SW_update_TX_Request.USART_Number        = SW_USART_CHANNEL ;
+   SW_update_TX_Request.USART_ID            = SW_USART_CHANNEL_ID_TX;
+   SW_update_TX_Request.USART_Number        = SW_USART_CHANNEL_TX ;
    SW_update_TX_Request.USART_CBFunc        = SW_TX_Done_CB ;
 
 }

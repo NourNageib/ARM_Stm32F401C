@@ -28,14 +28,14 @@
      | 0 | 0 | 0 | 0 | 0 | 0 | 
      -------------------------
               
-    -----------------------------    
-    |   [0:1]    |   I/O/AF/ANA |
-    ----------------------------|
-    |   00 ->    |  INPUT       |
-    |   01 ->    |  OUTPUT      |
-    |   10 ->    |  AF          |
-    |   11 ->    |  ANALOG      |
-    -----------------------------
+    ---------------------------    
+    |   [0:1]   |  I/O/AF/ANA |
+    --------------------------|
+    |   00 ->   |  INPUT      |
+    |   01 ->   |  OUTPUT     |
+    |   10 ->   |  AF         |
+    |   11 ->   |  ANALOG     |
+    ---------------------------
     -----------------------------    
     |   [3:2]    |   PU/PD/FL   |
     ----------------------------|
@@ -45,36 +45,36 @@
     |   11 ->    |  RESERVED    |
     -----------------------------
 
-    -----------------------------    
-    |   [4]      |    OD-PP     |
-    ----------------------------|
-    |    0 ->    |  OPENDRAIN   |
-    |    1 ->    |  PUSHPULL    |
-    -----------------------------
+    ----------------------------    
+    |    [4]    |    OD-PP     |
+    ---------------------------|
+    |    0 ->   |   PUSHPULL   |
+    |    1 ->   |  OPENDRAIN   |
+    ----------------------------
 
-    -----------------------------    
-    |   [5]      | LOCK-UNLOCK  |
-    ----------------------------|
-    |    0 ->    |  NOT ACTIVE  |
-    |    1 ->    |    ACTIVE    |
-    -----------------------------
+    ----------------------------    
+    |    [5]    | LOCK-UNLOCK  |
+    ---------------------------|
+    |    0 ->   |  NOT ACTIVE  |
+    |    1 ->   |    ACTIVE    |
+    ----------------------------
 */
 
 #define GPIO_INPUT_FLOATING_V2            0X00000000
 #define GPIO_INPUT_PULLUP_V2              0X00000004
 #define GPIO_INPUT_PULLDOWN_V2            0X00000008
-#define GPIO_OUTPUT_OPENDRAIN_V2          0X00000001
-#define GPIO_OUTPUT_OPENDRAIN_PULLUP_V2   0X00000005
-#define GPIO_OUTPUT_OPENDRAIN_PULLDOWN_V2 0X00000009
-#define GPIO_OUTPUT_PUSHPULL_PULLUP_V2    0X00000015
-#define GPIO_OUTPUT_PUSHPULL_PULLDOWN_V2  0X00000019
-#define GPIO_OUTPUT_PUSHPULL_NOPUPD_V2    0X00000011
+#define GPIO_OUTPUT_OPENDRAIN_V2          0X00000011
+#define GPIO_OUTPUT_OPENDRAIN_PULLUP_V2   0X00000015
+#define GPIO_OUTPUT_OPENDRAIN_PULLDOWN_V2 0X00000019
+#define GPIO_OUTPUT_PUSHPULL_PULLUP_V2    0X00000005
+#define GPIO_OUTPUT_PUSHPULL_PULLDOWN_V2  0X00000009
+#define GPIO_OUTPUT_PUSHPULL_NOPUPD_V2    0X00000001
 #define GPIO_ANALOG_V2                    0X00000003    
-#define GPIO_AF_OPENDRAIN_PULLUP_V2       0X00000006
-#define GPIO_AF_OPENDRAIN_PULLDOWN_V2     0X0000000A
-#define GPIO_AF_PUSHPULL_PULLDOWN_V2      0X0000001A
-#define GPIO_AF_PUSHPULL_PULLUP_V2        0X00000016
-#define GPIO_AF_PUSHPULL_NOPUPD_V2        0X00000012
+#define GPIO_AF_OPENDRAIN_PULLUP_V2       0X00000016
+#define GPIO_AF_OPENDRAIN_PULLDOWN_V2     0X0000001A
+#define GPIO_AF_PUSHPULL_PULLDOWN_V2      0X0000000A
+#define GPIO_AF_PUSHPULL_PULLUP_V2        0X00000006
+#define GPIO_AF_PUSHPULL_NOPUPD_V2        0X00000002
 
 /************************************************/
 /***         Configuration options            ***/
