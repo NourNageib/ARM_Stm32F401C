@@ -49,7 +49,8 @@
 
 
 
-typedef unsigned int uint32_t;
+typedef unsigned int  uint32_t;
+typedef unsigned char uint8_t;
 typedef enum
 {
     USART_Asynchronous_mode,
@@ -211,7 +212,7 @@ typedef struct
 */
 typedef struct
 {
-	uint8_t*            USART_Data;
+	uint8_t *           USART_Data;
 	uint32_t            USART_DataArraySize;
 	void*               USART_Number;
 	USART_ID_t          USART_ID;

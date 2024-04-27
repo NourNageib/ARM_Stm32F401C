@@ -44,6 +44,7 @@
 #define USART_RE_MASK         (uint32_t)(1<<RE)
 #define USART_RXNEIE_MASK     (uint32_t)(1<<RXNEIE)
 #define USART_UE_MASK         (uint32_t)(1<<UE)
+#define USART_RXNE_MASK       (uint32_t)(1<<RXNE)
 
 
 /*****************************************************/
@@ -161,6 +162,7 @@ USART_ErrorStatus_t USART_Init(USART_CFG_t * USART_Cfg)
 
         */
 
+
 		USARTDIV     =  ((float) USART_CLK_Frequency )/(float)(8*(2-((USART_Reg_ptr->USART_CR1)>>OVER8 &1))*USART_Cfg->USART_BaudRate);
 		DIV_FRACTION =  (float)(((int)(USARTDIV*1000))%1000)/1000.0;
 		DIV_Mantissa =  USARTDIV - DIV_FRACTION;
@@ -209,7 +211,8 @@ USART_ErrorStatus_t USART_Init(USART_CFG_t * USART_Cfg)
 
 
 		}
-		USART_local_mask         = (0x068<<USART_DIV_MANTISSA_POS) | (int) (0x3);
+		//USART_local_mask         = (0x068<<USART_DIV_MANTISSA_POS) | (int) (0x3);
+		USART_local_mask         = (DIV_Mantissa<<USART_DIV_MANTISSA_POS) | (int) (DIV_FRACTION);
 		USART_Reg_ptr->USART_BRR = USART_local_mask ;
 
 
@@ -431,7 +434,7 @@ uint8_t  USART_GetTXE(void* USART_Number)
 uint8_t  USART_GetRXNE(void* USART_Number)
 {
 	USART_Reg_ptr =  (USART_Registers_t*) USART_Number;
-	return ((USART_Reg_ptr->USART_SR & USART_TXE_MASK)>>RXNE);
+	return ((USART_Reg_ptr->USART_SR & USART_RXNE_MASK)>>RXNE);
 
 
 }
@@ -497,7 +500,7 @@ USART_ErrorStatus_t USART_TxByte_Async(USART_Request_t USART_TxRequest)
 			USART_Local_error = USART_ERROR;
 			
 		}
-	else if (!(USART_TxRequest.USART_CBFunc|| USART_TxRequest.USART_Data))
+	else if (!(USART_TxRequest.USART_CBFunc || USART_TxRequest.USART_Data))
 		{
 			USART_Local_error = USART_NULL_PTR;
 		}
@@ -507,7 +510,6 @@ USART_ErrorStatus_t USART_TxByte_Async(USART_Request_t USART_TxRequest)
 		}
 	else
 		{
-			
 			/*Assign USART based on Argument USART ID with its request buffer data size and state of this request */
 			USART_TxRequests[USART_TxRequest.USART_ID].USART_RequestState                  = USART_TxRequest_busy ;
 			USART_TxRequests[USART_TxRequest.USART_ID].USART_Buffer.USART_ByteBufferPtr    = USART_TxRequest.USART_Data;
@@ -516,6 +518,7 @@ USART_ErrorStatus_t USART_TxByte_Async(USART_Request_t USART_TxRequest)
 			USART_TxRequests[USART_TxRequest.USART_ID].USART_Buffer.USART_BufferCurrentIdx = USART_Init_BufferIdx ;
 			USART_Reg_ptr->USART_CR1= USART_EDIT_REG_MASK(USART_Reg_ptr->USART_CR1,USART_TE_MASK,USART_SET);
             /*Sening 1st byte to trigger Tx interrupt*/
+			uint8_t j =  USART_TxRequests[USART_TxRequest.USART_ID].USART_Buffer.USART_ByteBufferPtr[0];
 			USART_Reg_ptr->USART_DR = USART_TxRequests[USART_TxRequest.USART_ID].USART_Buffer.USART_ByteBufferPtr[0];
 			USART_TxRequests[USART_TxRequest.USART_ID].USART_Buffer.USART_BufferCurrentIdx++;
 			USART_ENABLE_TXE_INT(USART_TxRequest.USART_Number);
@@ -540,22 +543,17 @@ USART_ErrorStatus_t USART_RxByte_Sync(void* USART_Number ,uint8_t * USART_Byte)
 			USART_Local_ErrorStatus = USART_ERROR;
 			
 		}
-	else if (!USART_Byte )
-	{
-		USART_Local_ErrorStatus =USART_NULL_PTR;
-	
-	}
 	else
 		{
-			while(!USART_GetRXNE(USART_Number) && timeout)
+			while(!(((USART_Reg_ptr->USART_SR & USART_RXNE_MASK)>>RXNE)) && timeout)
 			{
 				timeout--;
 			}
 			if(! timeout)
 			{
 				USART_Local_ErrorStatus = USART_TIMEOUT;
-			}/* Data is transferred to the shift register*/
-			else if( USART_GetRXNE(USART_Number) )
+			}
+			else 
 			{
 				*USART_Byte = (uint8_t)((USART_Reg_ptr->USART_DR) & 0xFF);
 				USART_Local_ErrorStatus = USART_ByteReceived;
@@ -612,17 +610,13 @@ void USART1_IRQHandler(void)
 	USART_Reg_ptr =  (USART_Registers_t*)USART1;
 	if(USART_GetTXE(USART1))
 	{
-		if(USART_TxRequests[USART1_ID].USART_Buffer.USART_BufferCurrentIdx < USART_TxRequests[USART1_ID].USART_Buffer.USART_BufferSize)
+		if(USART_TxRequests[USART1_ID].USART_Buffer.USART_BufferCurrentIdx <= USART_TxRequests[USART1_ID].USART_Buffer.USART_BufferSize)
 		{
 			USART_Reg_ptr->USART_DR = USART_TxRequests[USART1_ID].USART_Buffer.USART_ByteBufferPtr[USART_TxRequests[USART1_ID].USART_Buffer.USART_BufferCurrentIdx];
 			USART_TxRequests[USART1_ID].USART_Buffer.USART_BufferCurrentIdx++;
 
 		}
-		else if (USART_GetTC(USART1))
-		{
-			/* code */
-		}
-		
+		else 
 		{
 			/*Finished and become ready for another tranfer request*/
 			USART_TxRequests[USART1_ID].USART_RequestState = USART_TxRequest_Ready;
@@ -669,7 +663,7 @@ void USART2_IRQHandler(void)
 			USART_TxRequests[USART2_ID].USART_Buffer.USART_BufferCurrentIdx++;
 
 		}
-		else if (USART_GetTC(USART2))
+		else 
 		{
 			/*Finished and become ready for another tranfer request*/
 			USART_TxRequests[USART2_ID].USART_RequestState = USART_TxRequest_Ready;

@@ -23,7 +23,7 @@
 
 /**************************************************************************************/
 /*
-** options : 1 - SYTK_AHB_8_CLK
+** options : 1 - SYSTICK_AHB_8_CLK
              2 - SYTK_Processor_AHB_CLK
   
 */
@@ -42,8 +42,8 @@ typedef struct
    uint32_t runnable_remaing_time;
 
 }SCHED_runnable_Info_t;
-
-const uint32_t SCHED_TICK_TIME_ms = 50;
+/*Because lowest periodicity for our system task is 2ms - > "LCD"*/
+const uint32_t SCHED_TICK_TIME_ms = 5;
 
 typedef enum
 {
@@ -76,7 +76,7 @@ void SCHED_Init()
    for ( local_runn_iterator = 0; local_runn_iterator < __SCHED_MAX_Runnables_ptr; local_runn_iterator++)
     {
         SCHED_Runables_INFO[local_runn_iterator].myrunnable = &SCHED_myrunnbles[local_runn_iterator];
-       // /*Init all runnables with required delay once system start*/
+       // Init all runnables with required delay once system start*/
         //SCHED_Runables_INFO[local_runn_iterator].runnable_remaing_time = SCHED_myrunnbles[local_runn_iterator].SCHED_delayTime_ms; 
    // }
  //*/

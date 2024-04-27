@@ -21,9 +21,15 @@
 
 typedef enum
 {
+    APP_USART_,
+    APP_SWITCH_,
+    APP_UPDATE_SWITCH_,
     //TRAFFIC_LIGHT,
-    app_blinkled_on_,
-    app_blinkled_off_,
+    // app_blinkled_on_,
+    // app_blinkled_off_,
+    // LCD,
+    // LCD_APP,
+    // LCD_CLEAR,
    /* UPDATESWITCH_STATE,
     READSWITCH,
     Clock_Runnable_,

@@ -13,7 +13,6 @@
 /**************************************************           SYSCLK RCC DRIVER                    *******************************************************/
 /*********************************************************************************************************************************************************/
 #include "GPIO.h"
-#include "Typedefs.h"
 /*********************************************************************************************************************************************************/
 /**************************************************             Defines Region                     *******************************************************/
 /*********************************************************************************************************************************************************/
@@ -135,8 +134,8 @@
 /************************************************/
 /********          Data  Types                ***/
 /************************************************/
-//typedef unsigned int uint32_t;
-//typedef unsigned char uint8_t;
+typedef unsigned int uint32_t;
+typedef unsigned char uint8_t;
 typedef enum
 {
 	GPIO_CLEAR,
@@ -149,20 +148,20 @@ typedef enum
 
 typedef struct 
 {
-     uint32_t GPIO_MODER;
-     uint32_t GPIO_OTYPE; 
-     uint32_t GPIO_OSPEEDR; 
-     uint32_t GPIO_PUPDR; 
-     uint32_t GPIO_IDR; 
-     uint32_t GPIO_ODR; 
-     uint32_t GPIO_BSRR; 
-     uint32_t GPIO_LCKR; 
-     uint32_t GPIO_AFRL; 
-     uint32_t GPIO_AFRH; 
+     volatile uint32_t GPIO_MODER;
+     volatile uint32_t GPIO_OTYPE; 
+     volatile uint32_t GPIO_OSPEEDR; 
+     volatile uint32_t GPIO_PUPDR; 
+     volatile uint32_t GPIO_IDR; 
+     volatile uint32_t GPIO_ODR; 
+     volatile uint32_t GPIO_BSRR; 
+     volatile uint32_t GPIO_LCKR; 
+     volatile uint32_t GPIO_AFRL; 
+     volatile uint32_t GPIO_AFRH; 
     
 }GPIOx_REGs;
 
-GPIOx_REGs * GPIOx = NULL;
+volatile GPIOx_REGs * GPIOx = NULL;
 
 /***********  GPIOREG pointers Typedf  ***********/
 
@@ -377,10 +376,13 @@ GPIO_ErrorStatus GPIO_SetPin_Value_V2(void* GPIO_Arg_Port,GPIO_PINs GPIO_Arg_Pin
    if (GPIO_Arg_SET_VAL == GPIO_PIN_HIGH )
    {
      GPIOx->GPIO_BSRR = GPIO_EDIT_Bit_Reg( GPIOx->GPIO_BSRR ,GPIO_SET_BITNUM(GPIO_Arg_Pin) ,GPIO_SET);
+     //GPIOx->GPIO_ODR = GPIO_EDIT_Bit_Reg( GPIOx->GPIO_ODR ,GPIO_SET_BITNUM(GPIO_Arg_Pin) ,GPIO_SET);
    }
    else if(GPIO_Arg_SET_VAL == GPIO_PIN_LOW )
    {
+     //GPIOx->GPIO_BSRR = GPIO_EDIT_Bit_Reg( GPIOx->GPIO_BSRR ,GPIO_SET_BITNUM(GPIO_Arg_Pin) ,GPIO_CLEAR);
          GPIOx->GPIO_BSRR = GPIO_EDIT_Bit_Reg( GPIOx->GPIO_BSRR ,GPIO_RESET_BITNUM(GPIO_Arg_Pin) ,GPIO_SET);
+      //GPIOx->GPIO_ODR = GPIO_EDIT_Bit_Reg( GPIOx->GPIO_ODR ,GPIO_SET_BITNUM(GPIO_Arg_Pin) ,GPIO_CLEAR);
    }
    else
    {
@@ -395,7 +397,7 @@ GPIO_ErrorStatus GPIO_SetPin_Value_V2(void* GPIO_Arg_Port,GPIO_PINs GPIO_Arg_Pin
 GPIO_ErrorStatus GPIO_GetPin_Value_V2(void* GPIO_Arg_Port,GPIO_PINs GPIO_Arg_Pin,GPIO_PIN_STATE_t *GPIO_Arg_Value)
 {
     GPIO_ErrorStatus GPIO_Loc_error = GPIO_SETRESET_OK;
-  
+    GPIOx = (GPIOx_REGs*)(GPIO_Arg_Port);
     if( !GPIO_CHECK_PORT(GPIO_Arg_Port) && !(GPIO_CHECK_PIN(GPIO_Arg_Pin)) )
     {
         GPIO_Loc_error = GPIO_INVALID_PORT_PIN;
@@ -404,7 +406,10 @@ GPIO_ErrorStatus GPIO_GetPin_Value_V2(void* GPIO_Arg_Port,GPIO_PINs GPIO_Arg_Pin
     {
         GPIO_Loc_error = GPIO_NULL_PTR;
     }
-
+    volatile uint32_t C;
+    C=(GPIOx->GPIO_IDR);
+    C=((GPIOx->GPIO_IDR>>GPIO_Arg_Pin)&(1));
+     *GPIO_Arg_Value = ((GPIOx->GPIO_IDR)&(1<<GPIO_Arg_Pin))>>GPIO_Arg_Pin;
    
     
     return GPIO_Loc_error;  

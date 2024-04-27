@@ -62,7 +62,7 @@ typedef struct
 
 /*************************** LED_Init **************************/
 /*
-/* Functionality    : Loop on all leds configuration in myLEDs
+   Functionality    : Loop on all leds configuration in myLEDs
                       array in LED_CFG.c file to check its state
                       and connection configured correctly.
                       Then using sruct of GPIO type used to copy 
@@ -91,7 +91,7 @@ LED_ErrorStatus_t LED_Init(void);
 
 /************************** LED_Set_State **********************/
 /*
-/* Functionality    :  After init state of LED when it is 
+   Functionality    :  After init state of LED when it is 
                        required to change its state by sending 
                        its ID and Required state.
                         
@@ -110,7 +110,7 @@ LED_ErrorStatus_t LED_Set_State(LED_LEDList_t LED_ArgID,LED_State_t LED_ArgState
 
 /************************** LED_Set_State **********************/
 /*
-/* Functionality    :  Toggle switch state based on prev state
+   Functionality    :  Toggle switch state based on prev state
                        of LED.
                         
    Input Parameters : 1- LED ID set based on LIST of LEDs in 

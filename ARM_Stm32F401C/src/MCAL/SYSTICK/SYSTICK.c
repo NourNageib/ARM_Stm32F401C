@@ -223,7 +223,6 @@ SYSTICK_ErrorStatus SYSTICK_SetTimeMS(uint32_t SYSTICK_TIME_MS)
 
 void SysTick_Handler(void)
 {
-   SYSTICK_ErrorStatus SYSTICK_Local_status = SYSTICK_NOK;
    
    /* if((!SYSTICK_CHECK_MODE(SYSTICK_INPUT_MODE)) &&  (SYSTICK_CallBack == NULL))
    {
@@ -241,7 +240,7 @@ void SysTick_Handler(void)
             SYSTICK_CallBack();
        // }
   //s }
-   return SYSTICK_Local_status ;
+
 
 }
 SYSTICK_ErrorStatus SYSTICK_SetCallBack(SYSTICK_Callback Input_callback)
