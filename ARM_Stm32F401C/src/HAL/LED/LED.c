@@ -26,7 +26,7 @@
 #define LED_CHECK_LED_SET(GPIO,LED)                     ((LED == LED_ID_OK ) && (GPIO == GPIO_SETRESET_OK))
 
 /* Extern for Array of LEDs in CFG file */
-extern LED_Cfg_t  TrafficLight_LEDs[_LED_NUM] ;
+extern LED_Cfg_t  My_LEDs[_LED_NUM] ;
 
 
 /************************************************************************************/
@@ -58,11 +58,11 @@ LED_ErrorStatus_t LED_Init(void)
     
     for (local_LED_idx = 0;(local_LED_idx < _LED_NUM); local_LED_idx++)
     {
-        Local_LED_cfg.GPIO_PORT = TrafficLight_LEDs[local_LED_idx].LED_PORT;
-        Local_LED_cfg.GPIO_PIN  = TrafficLight_LEDs[local_LED_idx].LED_PIN;
+        Local_LED_cfg.GPIO_PORT = My_LEDs[local_LED_idx].LED_PORT;
+        Local_LED_cfg.GPIO_PIN  = My_LEDs[local_LED_idx].LED_PIN;
 
        GPIO_STATUS = GPIO_InitPin_v2(&Local_LED_cfg);
-       GPIO_STATUS= GPIO_SetPin_Value_V2(TrafficLight_LEDs[local_LED_idx].LED_PORT,TrafficLight_LEDs[local_LED_idx].LED_PIN,TrafficLight_LEDs[local_LED_idx].LED_CONNECTION ^ TrafficLight_LEDs[local_LED_idx].LED_STATE);
+       GPIO_STATUS= GPIO_SetPin_Value_V2(My_LEDs[local_LED_idx].LED_PORT,My_LEDs[local_LED_idx].LED_PIN,My_LEDs[local_LED_idx].LED_CONNECTION ^ My_LEDs[local_LED_idx].LED_STATE);
     }
     if(GPIO_STATUS)
     {
@@ -85,7 +85,7 @@ LED_ErrorStatus_t LED_Set_State(LED_LEDList_t LED_ArgID,LED_State_t LED_ArgState
     if(LED_CHECK_ID(LED_ArgID))
     {
          LED_local_status = LED_ID_OK ;
-         GPIO_STATUS = GPIO_SetPin_Value_V2(TrafficLight_LEDs[LED_ArgID].LED_PORT,TrafficLight_LEDs[LED_ArgID].LED_PIN,TrafficLight_LEDs[LED_ArgID].LED_CONNECTION ^ LED_ArgState);
+         GPIO_STATUS = GPIO_SetPin_Value_V2(My_LEDs[LED_ArgID].LED_PORT,My_LEDs[LED_ArgID].LED_PIN,My_LEDs[LED_ArgID].LED_CONNECTION ^ LED_ArgState);
     }
     else
     {
@@ -114,8 +114,8 @@ LED_ErrorStatus_t LED_Toggle_State(LED_LEDList_t LED_ArgID )
 
     if(LED_CHECK_ID(LED_ArgID))
     {
-        LED_Prev_state = TrafficLight_LEDs[LED_ArgID].LED_STATE;
-        GPIO_STATUS = GPIO_SetPin_Value_V2(TrafficLight_LEDs[LED_ArgID].LED_PORT,TrafficLight_LEDs[LED_ArgID].LED_PIN,TrafficLight_LEDs[LED_ArgID].LED_CONNECTION ^ (1^LED_Prev_state));
+        LED_Prev_state = My_LEDs[LED_ArgID].LED_STATE;
+        GPIO_STATUS = GPIO_SetPin_Value_V2(My_LEDs[LED_ArgID].LED_PORT,My_LEDs[LED_ArgID].LED_PIN,My_LEDs[LED_ArgID].LED_CONNECTION ^ (1^LED_Prev_state));
         LED_local_status = LED_TOGGLE_OK;
     }
     else
@@ -134,4 +134,42 @@ LED_ErrorStatus_t LED_Toggle_State(LED_LEDList_t LED_ArgID )
     return LED_local_status;
 
 
+}
+/* assumed that the tested led cfg in idx 0 of the array*/
+LED_ErrorStatus_t LED_On(void)
+{
+    LED_ErrorStatus_t LED_local_status = LED_ON_NOK;
+    GPIO_ErrorStatus  GPIO_STATUS      = GPIO_SETRESET_NOK;
+    GPIO_PIN_STATE_t       LED_Prev_state;
+   GPIO_GetPin_State_V2(My_LEDs[0].LED_PORT,My_LEDs[0].LED_PIN,&LED_Prev_state);
+   GPIO_STATUS = GPIO_SetPin_Value_V2(My_LEDs[0].LED_PORT,My_LEDs[0].LED_PIN,My_LEDs[0].LED_CONNECTION ^ (1^LED_Prev_state));
+  if (GPIO_STATUS == GPIO_SETRESET_OK)
+  {
+    LED_local_status = LED_ON_OK;
+  }
+    return LED_local_status;
+}
+/* assumed that the tested led cfg in idx 0 of the array*/
+LED_ErrorStatus_t LED_Off(void)
+{
+    LED_ErrorStatus_t LED_local_status = LED_OFF_NOK;
+    GPIO_ErrorStatus  GPIO_STATUS      = GPIO_SETRESET_NOK;
+    GPIO_PIN_STATE_t       LED_Prev_state;
+  GPIO_GetPin_State_V2(My_LEDs[0].LED_PORT,My_LEDs[0].LED_PIN,&LED_Prev_state);
+   GPIO_STATUS = GPIO_SetPin_Value_V2(My_LEDs[0].LED_PORT,My_LEDs[0].LED_PIN,My_LEDs[0].LED_CONNECTION ^ (1^LED_Prev_state));
+   My_LEDs[0].LED_STATE = LED_STATE_OFF;
+  if (GPIO_STATUS == GPIO_SETRESET_OK)
+  {
+    LED_local_status = LED_OFF_OK;
+  }
+    return LED_local_status;
+}
+
+void LED_ON(void)
+{
+   LED_On(); 
+}
+void LED_OFF(void)
+{
+   LED_Off(); 
 }

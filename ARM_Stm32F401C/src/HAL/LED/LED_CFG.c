@@ -18,7 +18,7 @@
 /*        Configuration Set for my LEDs    */
 /*                 in system               */
 
-const LED_Cfg_t  TrafficLight_LEDs[_LED_NUM] =
+const LED_Cfg_t  My_LEDs[_LED_NUM] =
 {
   [LED_RED] = 
                 { .LED_PORT       = GPIO_PORTA_v2,
@@ -26,21 +26,21 @@ const LED_Cfg_t  TrafficLight_LEDs[_LED_NUM] =
                   .LED_STATE      = LED_STATE_OFF,
                   .LED_CONNECTION = LED_Connection_FORWARD
 
-                },
-  [LED_YELLOW]  = 
-                { .LED_PORT       = GPIO_PORTA_v2,
-                  .LED_PIN        = GPIO_PIN1,
-                  .LED_STATE      = LED_STATE_OFF,
-                  .LED_CONNECTION = LED_Connection_REVERSED
-
-                },
-   [LED_GREEN]  = 
-                { .LED_PORT       = GPIO_PORTA_v2,
-                  .LED_PIN        = GPIO_PIN2,
-                  .LED_STATE      = LED_STATE_OFF,
-                  .LED_CONNECTION = LED_Connection_REVERSED
-
                 }
+  // [LED_YELLOW]  = 
+  //               { .LED_PORT       = GPIO_PORTA_v2,
+  //                 .LED_PIN        = GPIO_PIN1,
+  //                 .LED_STATE      = LED_STATE_OFF,
+  //                 .LED_CONNECTION = LED_Connection_REVERSED
+
+  //               },
+  //  [LED_GREEN]  = 
+  //               { .LED_PORT       = GPIO_PORTA_v2,
+  //                 .LED_PIN        = GPIO_PIN2,
+  //                 .LED_STATE      = LED_STATE_OFF,
+  //                 .LED_CONNECTION = LED_Connection_REVERSED
+
+  //               }
 
 };
 /*
@@ -61,4 +61,22 @@ LED_Cfg_t  LED_myLEDs [_LED_NUM] =
                 
 
 };
+*/
+
+/*
+
+     |----------------|-----------|
+     | LED Connection | LED_STATE |
+     |----------------|-----------|
+     |     PULLUP     | FOREWARED | -> NO ACIION LED_ON 
+     |----------------|-----------|
+     |     PULLUP     | REVERSED  | -> NO ACIION LED_OFF
+     |----------------|-----------|
+     |   PULL DOWN    | FOREWARED | -> NO ACIION LED_Off 
+     |----------------|-----------|
+     |   PULL DOWN    | REVERSED  | -> NO ACIION LED_On
+     |----------------|-----------|
+
+
+
 */

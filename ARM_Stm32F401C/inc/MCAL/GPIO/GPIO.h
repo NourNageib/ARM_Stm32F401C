@@ -392,3 +392,4 @@ GPIO_ErrorStatus GPIO_SetPin_Value_V2(void* GPIO_Arg_Port,GPIO_PINs GPIO_Arg_Pin
 */
 GPIO_ErrorStatus GPIO_GetPin_Value(GPIO_PORTs GPIO_Arg_Port,GPIO_PINs GPIO_Arg_Pin,GPIO_SET_opts *GPIO_Arg_Value);
 GPIO_ErrorStatus GPIO_GetPin_Value_V2(void* GPIO_Arg_Port,GPIO_PINs GPIO_Arg_Pin,GPIO_PIN_STATE_t *GPIO_Arg_Value);
+GPIO_ErrorStatus GPIO_GetPin_State_V2(void* GPIO_Arg_Port,GPIO_PINs GPIO_Arg_Pin,GPIO_PIN_STATE_t *GPIO_Arg_Value);

@@ -14,7 +14,7 @@
 /************************************************************************************/
 /**************************       LED  DRIVER         *******************************/
 /************************************************************************************/
-
+#include "LED_CFG.h"
 typedef unsigned int uint32_t;
 typedef unsigned char uint8_t;
 
@@ -32,7 +32,11 @@ typedef enum
     LED_ID_NOK,
     LED_ID_OK,
     LED_TOGGLE_OK,
-    LED_TOGGLE_NOK
+    LED_TOGGLE_NOK,
+    LED_ON_NOK,
+    LED_ON_OK,
+    LED_OFF_OK,
+    LED_OFF_NOK
 
 }LED_ErrorStatus_t;
 
@@ -123,5 +127,10 @@ LED_ErrorStatus_t LED_Set_State(LED_LEDList_t LED_ArgID,LED_State_t LED_ArgState
 	                                                           */
 /***************************************************************/
 LED_ErrorStatus_t LED_Toggle_State(LED_LEDList_t LED_ArgID );
+
+
+LED_ErrorStatus_t LED_On(void);
+LED_ErrorStatus_t LED_Off(void);
+
 
 #endif

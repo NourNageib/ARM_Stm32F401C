@@ -394,6 +394,24 @@ GPIO_ErrorStatus GPIO_SetPin_Value_V2(void* GPIO_Arg_Port,GPIO_PINs GPIO_Arg_Pin
 }
 
 
+GPIO_ErrorStatus GPIO_GetPin_State_V2(void* GPIO_Arg_Port,GPIO_PINs GPIO_Arg_Pin,GPIO_PIN_STATE_t *GPIO_Arg_Value)
+{
+    GPIO_ErrorStatus GPIO_Loc_error = GPIO_SETRESET_OK;
+    GPIOx = (GPIOx_REGs*)(GPIO_Arg_Port);
+    if( !GPIO_CHECK_PORT(GPIO_Arg_Port) && !(GPIO_CHECK_PIN(GPIO_Arg_Pin)) )
+    {
+        GPIO_Loc_error = GPIO_INVALID_PORT_PIN;
+    }
+    if(GPIO_Arg_Value == NULL)
+    {
+        GPIO_Loc_error = GPIO_NULL_PTR;
+    }
+
+     *GPIO_Arg_Value = ((GPIOx->GPIO_ODR)&(1<<GPIO_Arg_Pin))>>GPIO_Arg_Pin;
+   
+    
+    return GPIO_Loc_error;  
+}
 GPIO_ErrorStatus GPIO_GetPin_Value_V2(void* GPIO_Arg_Port,GPIO_PINs GPIO_Arg_Pin,GPIO_PIN_STATE_t *GPIO_Arg_Value)
 {
     GPIO_ErrorStatus GPIO_Loc_error = GPIO_SETRESET_OK;
@@ -406,9 +424,7 @@ GPIO_ErrorStatus GPIO_GetPin_Value_V2(void* GPIO_Arg_Port,GPIO_PINs GPIO_Arg_Pin
     {
         GPIO_Loc_error = GPIO_NULL_PTR;
     }
-    volatile uint32_t C;
-    C=(GPIOx->GPIO_IDR);
-    C=((GPIOx->GPIO_IDR>>GPIO_Arg_Pin)&(1));
+
      *GPIO_Arg_Value = ((GPIOx->GPIO_IDR)&(1<<GPIO_Arg_Pin))>>GPIO_Arg_Pin;
    
     

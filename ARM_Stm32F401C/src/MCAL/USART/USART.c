@@ -83,8 +83,9 @@ typedef enum
 {
 	USART_TxRequest_Ready,
 	USART_TxRequest_busy,
-	USART_RxRequest_busy,
-	USART_RxRequest_Ready
+	USART_RxRequest_Ready,
+	USART_RxRequest_busy
+	
 
 }USART_TxRequest_State_t;
 
@@ -117,8 +118,8 @@ typedef struct
 static volatile USART_Registers_t * USART_Reg_ptr = NULL;
 
 /*Array of transmission Reqests for each USART avaliable in system*/
-USART_TxRxRequest_t USART_TxRequests[USART_NUM]={0};
-USART_TxRxRequest_t USART_RxRequests[USART_NUM]={0};
+USART_TxRxRequest_t USART_TxRequests[USART_NUM]={[USART1_ID]={.USART_RequestState = USART_TxRequest_Ready},[USART2_ID]={.USART_RequestState = USART_TxRequest_Ready},[USART6_ID]={.USART_RequestState = USART_TxRequest_Ready}};
+USART_TxRxRequest_t USART_RxRequests[USART_NUM]={[USART1_ID]={.USART_RequestState = USART_RxRequest_Ready},[USART2_ID]={.USART_RequestState = USART_RxRequest_Ready},[USART6_ID]={.USART_RequestState = USART_RxRequest_Ready}};
 
 /*****************************************************************************************************************************************************/
 /*********************************************         Static Functions Prototypes Region        *****************************************************/
@@ -144,7 +145,8 @@ USART_ErrorStatus_t USART_Init(USART_CFG_t * USART_Cfg)
     {
         USART_Reg_ptr = (USART_Registers_t*)USART_Cfg->USART_Number;
 
-        USART_local_mask         = USART_Cfg->USART_Sampling_rate | USART_Cfg->USART_Parity_mode | USART_Cfg->USART_Device_mode | USART_Cfg->USART_wordlength;
+        //USART_local_mask         = USART_Cfg->USART_Sampling_rate | USART_Cfg->USART_Parity_mode | USART_Cfg->USART_Device_mode | USART_Cfg->USART_wordlength;
+        USART_local_mask         = USART_Cfg->USART_Sampling_rate | USART_Cfg->USART_Parity_mode | USART_Cfg->USART_wordlength;
         USART_Reg_ptr->USART_CR1 = USART_EDIT_REG_MASK(USART_Reg_ptr->USART_CR1,USART_CFG_MASK,USART_CLEAR);
         USART_Reg_ptr->USART_CR1 = USART_EDIT_REG_MASK(USART_Reg_ptr->USART_CR1,USART_local_mask,USART_SET);
 		USART_Reg_ptr->USART_CR2 = USART_EDIT_REG_MASK(USART_Reg_ptr->USART_CR2,USART_STOP_MASK,USART_CLEAR);
@@ -434,7 +436,7 @@ uint8_t  USART_GetTXE(void* USART_Number)
 uint8_t  USART_GetRXNE(void* USART_Number)
 {
 	USART_Reg_ptr =  (USART_Registers_t*) USART_Number;
-	return ((USART_Reg_ptr->USART_SR & USART_RXNE_MASK)>>RXNE);
+	return ((USART_Reg_ptr->USART_SR) & ((USART_RXNE_MASK)>>RXNE));
 
 
 }
@@ -579,13 +581,13 @@ USART_ErrorStatus_t USART_RxByte_Async(USART_Request_t USART_RxRequest)
 		{
 			USART_Local_error = USART_NULL_PTR;
 		}
-	else if(USART_TxRequests[USART_RxRequest.USART_ID].USART_RequestState == USART_TxRequest_busy)
+	else if(USART_RxRequests[USART_RxRequest.USART_ID].USART_RequestState == USART_TxRequest_busy)
 		{
 			USART_Local_error = USART_Busy;
 		}
    else
 		{
-			
+			USART_DISABLE_RXEIE_INT(USART_RxRequest.USART_Number);
 			/*Assign USART based on Argument USART ID with its request buffer data size and state of this request */
 			USART_RxRequests[USART_RxRequest.USART_ID].USART_RequestState                  = USART_RxRequest_busy ;
 			USART_RxRequests[USART_RxRequest.USART_ID].USART_Buffer.USART_ByteBufferPtr    = USART_RxRequest.USART_Data;
@@ -627,19 +629,20 @@ void USART1_IRQHandler(void)
 			
 		}
 	}
-	if(USART_GetRXNE(USART1))
+	//if(USART_GetRXNE(USART1))
+	if((USART_Reg_ptr->USART_SR) & (USART_RXNE_MASK))
 	{
 		if(USART_RxRequests[USART1_ID].USART_Buffer.USART_BufferCurrentIdx < USART_RxRequests[USART1_ID].USART_Buffer.USART_BufferSize)
 		{
-			USART_RxRequests[USART1_ID].USART_Buffer.USART_ByteBufferPtr[USART_RxRequests[USART1_ID].USART_Buffer.USART_BufferCurrentIdx] = USART_Reg_ptr->USART_DR ;
+			USART_RxRequests[USART1_ID].USART_Buffer.USART_ByteBufferPtr[USART_RxRequests[USART1_ID].USART_Buffer.USART_BufferCurrentIdx] = (uint8_t)USART_Reg_ptr->USART_DR ;
 			USART_RxRequests[USART1_ID].USART_Buffer.USART_BufferCurrentIdx++;
 
 		}
 		else
 		{
+			USART_DISABLE_RXEIE_INT(USART1);
 			/*Finished and become ready for another tranfer request*/
 			USART_RxRequests[USART1_ID].USART_RequestState = USART_RxRequest_Ready;
-			USART_DISABLE_RXEIE_INT(USART1);
 			USART_Reg_ptr->USART_CR1 = USART_EDIT_REG_MASK(USART_Reg_ptr->USART_CR1,USART_RE_MASK,USART_CLEAR);
 			/*Executing action required after transmission completed sucessfully*/
 			USART_RxRequests[USART1_ID].USART_TxRx_CBFunc();
