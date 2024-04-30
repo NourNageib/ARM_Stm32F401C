@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+message Command {
+    enum FunctionID {
+        LED_ON = 1;
+        LED_OFF = 2;
+        SWITCH_STATE = 3;
+        // Add more function IDs for other commands if needed
+    }
+    FunctionID function_id = 1;
+}
+
+message Response {
+    enum FunctionStatus {
+        OK = 0;
+        LED_ON_NOK = 1;
+        LED_ON_OK = 2;
+        LED_OFF_NOK = 3;
+        LED_OFF_OK = 4;
+        SWITCH_PRESSED = 5;
+        SWITCH_NPRESSED = 6;
+        // Add more statuses as needed
+    }
+    FunctionStatus status = 1;
+}
