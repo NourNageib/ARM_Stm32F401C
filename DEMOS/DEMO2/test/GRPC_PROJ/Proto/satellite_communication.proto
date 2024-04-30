@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package satellitecommunication;
+
+// Define the LED control service
+service LEDControl {
+    // Command to turn the LED on
+    rpc TurnOnLED (LEDRequest) returns (LEDResponse) {}
+
+    // Command to turn the LED off
+    rpc TurnOffLED (LEDRequest) returns (LEDResponse) {}
+}
+
+// Define message types for LED control
+message LEDRequest {
+    string command = 1;
+}
+
+message LEDResponse {
+    string status = 1;
+    bool success = 2; // Add a new field to indicate success status
+}
