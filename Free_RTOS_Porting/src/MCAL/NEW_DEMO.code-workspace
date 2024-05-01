@@ -1,0 +1,15 @@
+{
+	"folders": [
+		{
+			"name": "NEW_DEMO",
+			"path": ".."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"gpio.h": "c",
+			"hswitch.h": "c",
+			"sched.h": "c"
+		}
+	}
+}
